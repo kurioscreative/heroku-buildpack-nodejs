@@ -343,4 +343,22 @@ testExecWithPnpmAndEngine() {
 }
 
 
+testPnpmExportsStoreDirForSubsequentBuildpacks() {
+  # The buildpack's export file is sourced by Heroku before subsequent buildpacks
+  # (e.g. Ruby) run their compile step. For pnpm projects, that file must carry
+  # the store-dir config so downstream pnpm invocations reuse the same store and
+  # do not trigger a modules-purge against a "foreign" cache. The fixture uses
+  # pnpm 8, so the pre-pnpm-11 `npm_config_*` variant is expected.
+  cache_dir=$(mktmpdir)
+  env_dir=$(mktmpdir)
+  pnpm_cache_dir=$(mktmpdir)
+  echo "$pnpm_cache_dir" > "$env_dir/PNPM_CONFIG_CACHE"
+
+  compile "pnpm-8.15.5" "$cache_dir" "$env_dir"
+  assertCapturedSuccess
+  assertFileContains "export npm_config_store_dir=\"$pnpm_cache_dir\"" "$bp_dir/export"
+  assertFileNotContains "export pnpm_config_store_dir=" "$bp_dir/export"
+}
+
+
 source "$(pwd)"/test/shunit2

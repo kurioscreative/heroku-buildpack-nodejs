@@ -536,4 +536,15 @@ testDetermineYarnPackageNameFailure() {
 
 # Node version bounds
 
+
+testYarnDoesNotExportPnpmStoreDir() {
+  # The pnpm store-dir export is gated on the project using pnpm. Yarn projects
+  # must not leak pnpm config into subsequent buildpacks.
+  compile "build-script-yarn"
+  assertCapturedSuccess
+  assertFileNotContains "pnpm_config_store_dir" "$bp_dir/export"
+  assertFileNotContains "npm_config_store_dir" "$bp_dir/export"
+}
+
+
 source "$(pwd)"/test/shunit2

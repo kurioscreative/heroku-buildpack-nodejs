@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Propagate the pnpm store-dir env var (`pnpm_config_store_dir` / `npm_config_store_dir`) to subsequent buildpacks so downstream `pnpm install` invocations (e.g. Ruby buildpack asset compilation) reuse the same content-addressable store as the Node.js buildpack phase.
 - Export `CI=true` to prevent pnpm interactive mode failures in multi-buildpack setups. ([#1633](https://github.com/heroku/heroku-buildpack-nodejs/pull/1633))
 
 ## [v344] - 2026-04-30

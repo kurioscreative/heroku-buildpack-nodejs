@@ -399,6 +399,20 @@ if $PNPM; then
 			correctly between builds.
 		EOF
   fi
+
+  # Propagate the store-dir config to subsequent buildpacks (e.g. Ruby) that may invoke pnpm
+  # during asset compilation. Without this, downstream pnpm falls back to its default store
+  # path, sees the existing node_modules/.pnpm/ symlinks as foreign, and triggers a purge
+  # that aborts on no-TTY in pnpm 10+. Mirrors the in-shell version branch above; gating on
+  # the export file (rather than just the directory) skips cleanly when run outside Heroku
+  # (e.g. local tests where write_export was a no-op).
+  if [ -w "$BP_DIR/export" ]; then
+    if (( pnpm_major >= 11 )); then
+      echo "export pnpm_config_store_dir=\"$PNPM_CONFIG_CACHE\"" >> "$BP_DIR/export"
+    else
+      echo "export npm_config_store_dir=\"$PNPM_CONFIG_CACHE\"" >> "$BP_DIR/export"
+    fi
+  fi
 fi
 
 if [[ -z "$USE_NPM_INSTALL" ]]; then
